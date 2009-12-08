@@ -1,0 +1,14 @@
+== WHAT ==
+
+This is a Drupal 6 module which allows you to browse the sessions table
+and view the contents of each session.
+
+
+== WHY ==
+
+Why not? It kills time.
+
+
+== LICENSE ==
+
+See COPYING
