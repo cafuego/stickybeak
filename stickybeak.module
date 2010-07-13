@@ -48,7 +48,7 @@ function stickybeak_browse() {
   while ($o = db_fetch_object($result)) {
     $account = user_load($o->uid);
     $tuple = array(
-      'user' => theme('username', $account);
+      'user' => theme('username', $account),
       'sid' => l($o->sid, 'admin/reports/sessions/' . $o->sid),
       'hostname' => gethostbyaddr($o->hostname),
       'timestamp' => format_date($o->timestamp, 'custom', 'D j M G:i:s'),
