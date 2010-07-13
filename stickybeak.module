@@ -1,4 +1,6 @@
 <?php
+// $Id: stickybeak.module,v 1.2 2009/12/08 05:14:56 cafuego Exp $
+
 /**
  * Provide some stickybeakness into the sessions table. Show us who is online and from where.
  */
@@ -67,39 +69,28 @@ function stickybeak_browse() {
 
 /**
  * Show detailed info about a specific sid.
+ *
+ * TODO: Theme function.
  */
 function stickybeak_details($sid) {
 
   $output = '';
 
-  $query = "SELECT s.uid, s.sid, u.name, s.hostname, s.timestamp, s.session FROM {sessions} AS s INNER JOIN {users} AS u ON (s.uid = u.uid) WHERE s.sid = '%s'";
+  $query = "SELECT uid, sid, hostname, timestamp, session FROM {sessions} WHERE sid = '%s'";
   $object = db_fetch_object(db_query($query, $sid));
 
   if ($object) {
     drupal_set_title('Session ' . $sid);
-    $output .= '<ul>';
-    $output .= '<li>' . t('User') . ': ' . (($object->uid) ? l($object->name, 'user/' . $object->uid) : 'Anonymous') . '</li>';
-    $output .= '<li>' . t('Hostname') . ': ' . gethostbyaddr($object->hostname) . '</li>';
-    $output .= '<li>' . t('Timestamp') . ': ' . date('D j M G:i:s', $object->timestamp) . '</li>';
-    $output .= '</ul>';
 
-    // Decode the session data.
+    $username = theme('username', user_load($object->uid));
+    $hostname = gethostbyaddr($object->hostname);
+    $timestamp = $object->timestamp;
     $session = stickybeak_unserialize_session($object->session);
-    if (!$session) {
-      $output .= '<p>' . t('This session contains no variables.') . '</p>';
-    }
-    else {
-      $output .= '<p>' . t('Below are listed all session variables and their contents for session !sid.', array('!sid' => $sid)) . '</p>';
-      foreach ($session as $variable => $data) {
-        $output .= '<h3>' . $variable . '</h3>';
-        $output .= '<pre>';
-        $output .= print_r($data, TRUE);
-        $output .= '</pre>';
-      }
-    }
+
+    $output = theme('stickybeak_details', $sid, $username, $hostname, $timestamp, $session);
   } else {
-    drupal_set_message(t('Session !sid does not exist', array('!sid' => $sid)), 'error');
-    $output = 'No data.';
+    drupal_set_message(t('Session @sid does not exist', array('@sid' => $sid)), 'error');
+    $output = t('No data.');
   }
 
   return $output;
@@ -114,8 +105,31 @@ function stickybeak_unserialize_session($data) {
      '/([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)\|/',
      $data, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE
    );
-   for($i=0; $vars[$i]; $i++) {
-       $result[$vars[$i++]]=unserialize($vars[$i]);
+
+   if (empty($vars))
+     return NULL;
+
+   for ($i=0; $vars[$i]; $i++) {
+       $result[$vars[$i++]] = unserialize($vars[$i]);
    }
    return $result;
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function stickybeak_theme() {
+  $path = drupal_get_path('module', 'stickybeak');
+  return array(
+    'stickybeak_details' => array(
+      'arguments' => array('sid' => '', 'username' => variable_get('anonymous', 'Anonymous'), 'hostname' => '', 'timestamp' => 0, 'session' => array()),
+      'template' => 'stickybeak-details',
+      'path' => "$path/theme",
+    ),
+    'stickybeak_session' => array(
+      'arguments' => array('sid' => '', 'session' => array()),
+      'template' => 'stickybeak-session',
+      'path' => "$path/theme",
+    ),
+  );
 }

@@ -1,3 +1,4 @@
+;$Id: stickybeak.info,v 1.2 2009/12/08 05:14:56 cafuego Exp $
 name = Stickybeak
 description = Allows users with the <em>examine sessions</em> permission to view information on active and old user sessions.
 core = 6.x
