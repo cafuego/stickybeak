@@ -39,20 +39,19 @@ function stickybeak_perm() {
  * Pager through sessions 20 at a time.
  */
 function stickybeak_browse() {
-  $query = "SELECT s.uid, s.sid, u.name, s.hostname, s.timestamp, s.session FROM {sessions} AS s INNER JOIN {users} AS u ON (s.uid = u.uid) ORDER BY s.timestamp DESC";
-
-
+  $query = "SELECT uid, sid, hostname, timestamp FROM {sessions} ORDER BY timestamp DESC";
 
   $items_per_page = 20;
   $query = db_rewrite_sql($query);
   $result = pager_query($query, $items_per_page, 0, NULL);
 
   while ($o = db_fetch_object($result)) {
+    $account = user_load($o->uid);
     $tuple = array(
-      'user' => ($o->uid) ? l($o->name, 'user/' . $o->uid) : 'Anonymous',
+      'user' => theme('username', $account);
       'sid' => l($o->sid, 'admin/reports/sessions/' . $o->sid),
-      'hostname' => $o->hostname,
-      'timestamp' => date('D j M G:i:s', $o->timestamp),
+      'hostname' => gethostbyaddr($o->hostname),
+      'timestamp' => format_date($o->timestamp, 'custom', 'D j M G:i:s'),
     );
     $data[] = $tuple;
   }
@@ -60,7 +59,6 @@ function stickybeak_browse() {
   $headers = array('User', 'Session', 'Hostname', 'Active');
   drupal_set_title('Sessions');
 
-  // $output .= drupal_get_form('register_product_filter');
   $output  = theme('table', $headers, $data);
   $output .= theme('pager', array(), $items_per_page);
 
@@ -69,8 +67,6 @@ function stickybeak_browse() {
 
 /**
  * Show detailed info about a specific sid.
- *
- * TODO: Theme function.
  */
 function stickybeak_details($sid) {
 
