@@ -1,5 +1,7 @@
 <?php
  /**
+  * $Id$
+  *
   * Variables:
   *  - $sid    : A session ID string.
   *  - $session: A keyed array containing session data.

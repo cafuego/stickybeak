@@ -1,5 +1,7 @@
 <?php
  /**
+  * $Id$
+  *
   * Variables:
   *  - $sid:       A session ID string.
   *  - $username:  A themed username.
